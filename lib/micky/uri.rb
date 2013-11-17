@@ -1,4 +1,3 @@
-require 'delegate'
 require 'uri'
 
 module Micky
