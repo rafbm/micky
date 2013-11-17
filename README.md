@@ -15,15 +15,21 @@ don’t want to add heavy dependencies to your app.
 
 Add this line to your application’s Gemfile:
 
-    gem 'micky'
+```ruby
+gem 'micky'
+```
 
 And then execute:
 
-    $ bundle
+```sh
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install micky
+```sh
+$ gem install micky
+```
 
 ## Usage
 
@@ -59,6 +65,38 @@ if Micky.head(params[:website_url])
 else
   # Some error happened, display error message to user
 end
+```
+
+### Headers and query strings
+
+Request headers and query string params can be passed as `:headers` and `:query`.
+
+```ruby
+Micky.get('http://drpm.me/unwz.jpg', headers: { 'Accept' => 'text/html' })
+Micky.get('http://urls.api.twitter.com/1/urls/count.json', query: { url: 'dropmeme.com' })
+```
+
+### OAuth `Authorization` header
+
+Micky supports creating a OAuth `Authorization` header with the help of the
+[SimpleOAuth](https://github.com/laserlemon/simple_oauth) gem.
+
+```ruby
+Micky.get(
+  'https://api.twitter.com/1.1/statuses/user_timeline.json',
+  oauth: {
+    consumer_key: 'l0tSAl3tT3RsAnD1G1tS',
+    consumer_secret: 'l0tSAl3tT3RsAnD1G1tS',
+    token: 'l0tSAl3tT3RsAnD1G1tS',
+    token_secret: 'l0tSAl3tT3RsAnD1G1tS',
+  },
+)
+```
+
+To use the `:oauth` argument, just ensure [`simple_oauth`](http://rubygems.org/gems/simple_oauth) is available:
+
+```ruby
+gem 'simple_oauth'
 ```
 
 ### Automatically parse responses into Ruby objects
