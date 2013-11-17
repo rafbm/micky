@@ -5,7 +5,7 @@ module Micky
   class Request
     def initialize(opts = {})
       # Options can be set per request and fallback to module-level defaults
-      [:max_redirects, :timeout, :skip_resolve, :resolve_timeout, :headers, :parsers].each do |name|
+      [:max_redirects, :timeout, :skip_resolve, :resolve_timeout, :query, :headers, :parsers].each do |name|
         value = opts.has_key?(name) ? opts[name] : Micky.public_send(name)
         instance_variable_set "@#{name}", value
       end
@@ -69,6 +69,14 @@ module Micky
       http.open_timeout = @timeout
       http.read_timeout = @timeout
       http.ssl_timeout  = @timeout
+
+      # Query string
+      query = Hash[::URI.decode_www_form(@uri.query || '')]
+
+      if @query && @query.any?
+        query.merge! Hash[@query.map { |k,v| [k.to_s, v] }]
+        @uri.query = ::URI.encode_www_form(query)
+      end
 
       # Request
       request = Net::HTTP.const_get(@request_class_name).new(@uri)

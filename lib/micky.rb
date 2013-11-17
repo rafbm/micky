@@ -10,6 +10,7 @@ module Micky
     attr_accessor :timeout
     attr_accessor :skip_resolve
     attr_accessor :resolve_timeout
+    attr_accessor :query
     attr_accessor :headers
     attr_accessor :parsers
   end
@@ -19,6 +20,7 @@ module Micky
   @timeout = 5
   @skip_resolve = false
   @resolve_timeout = 2
+  @query = {}
   @headers = {}
   @parsers = {
     'application/json' => -> (body) {
