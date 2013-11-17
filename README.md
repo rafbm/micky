@@ -52,7 +52,7 @@ if Micky.head(params[:website_url])
   url.path = '/favicon.ico'
 
   if favicon = Micky.get(url)
-    # Do whatever with the raw `favicon.data`, for whatever reason
+    # Do whatever with the raw `favicon.body`, for whatever reason
   else
     # This site has no favicon, or a broken one, too bad
   end
@@ -105,11 +105,11 @@ Micky.parsers['application/json'] = -> (body) {
 }
 ```
 
-Parse images into [mini_magick](https://github.com/minimagick/minimagick)
+Parse images into [MiniMagick](https://github.com/minimagick/minimagick)
 instances:
 
 ```ruby
-parser = -> (body) {
+image_parser = -> (body) {
   begin
     MiniMagick::Image.read(body)
   rescue MiniMagick::Invalid
@@ -117,7 +117,7 @@ parser = -> (body) {
 }
 
 %w[image/png image/jpeg image/jpg image/gif].each do |type|
-  Micky.parsers[type] = parser
+  Micky.parsers[type] = image_parser
 end
 ```
 
@@ -125,6 +125,7 @@ end
 
 - Add tests
 - Better document configuration options in README
+- Add `raise_errors: true` option
 
 ## Contributing
 
