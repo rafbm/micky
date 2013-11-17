@@ -10,6 +10,7 @@ module Micky
     attr_accessor :timeout
     attr_accessor :skip_resolve
     attr_accessor :resolve_timeout
+    attr_accessor :oauth
     attr_accessor :query
     attr_accessor :headers
     attr_accessor :parsers
@@ -20,6 +21,7 @@ module Micky
   @timeout = 5
   @skip_resolve = false
   @resolve_timeout = 2
+  @oauth = {}
   @query = {}
   @headers = {}
   @parsers = {

@@ -5,7 +5,7 @@ module Micky
   class Request
     def initialize(opts = {})
       # Options can be set per request and fallback to module-level defaults
-      [:max_redirects, :timeout, :skip_resolve, :resolve_timeout, :query, :headers, :parsers].each do |name|
+      [:max_redirects, :timeout, :skip_resolve, :resolve_timeout, :oauth, :query, :headers, :parsers].each do |name|
         value = opts.has_key?(name) ? opts[name] : Micky.public_send(name)
         instance_variable_set "@#{name}", value
       end
@@ -76,6 +76,22 @@ module Micky
       if @query && @query.any?
         query.merge! Hash[@query.map { |k,v| [k.to_s, v] }]
         @uri.query = ::URI.encode_www_form(query)
+      end
+
+      # OAuth
+      if @oauth && @oauth.any?
+        unless defined? SimpleOAuth
+          begin
+            require 'simple_oauth'
+          rescue LoadError
+            raise 'You must install the simple_oauth gem to use the :oauth argument.'
+          end
+        end
+
+        uri_without_query = @uri.dup
+        uri_without_query.query = ''
+        header = SimpleOAuth::Header.new(@request_class_name, uri_without_query, query, @oauth).to_s
+        @headers['Authorization'] = header
       end
 
       # Request
