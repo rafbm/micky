@@ -15,4 +15,16 @@ module Micky
       end
     end
   end
+
+  module URI
+    def self.extract(text)
+      ::URI.extract(text).select { |uri|
+        begin
+          ::URI.parse(uri).is_a? ::URI::HTTP
+        rescue ::URI::InvalidURIError
+          false
+        end
+      }
+    end
+  end
 end
