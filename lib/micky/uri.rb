@@ -2,7 +2,7 @@ require 'delegate'
 require 'uri'
 
 module Micky
-  HTTP_URI_REGEX = /\Ahttps?:\/\//
+  HTTP_URI_REGEX = %r{\Ahttps?://}
 
   def self.URI(uri)
     uri = uri.to_s.strip
