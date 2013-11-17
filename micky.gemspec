@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
     'exceptions (invalid hosts/URIs, server errors, timeouts, redirect loops), ' \
     'automatically parses responses (JSON, etc.), is very lightweight, and has no ' \
     'dependency.'
-  spec.summary       = 'Simple, worry-free HTTP client'
+  spec.summary       = 'Lightweight and worry-free HTTP client'
   spec.homepage      = 'http://github.com/rafBM/micky'
   spec.license       = 'MIT'
 
