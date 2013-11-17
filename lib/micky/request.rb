@@ -13,25 +13,35 @@ module Micky
 
     def get(uri)
       @request_class_name = 'Get'
-      request(uri)
+      request_with_redirect_handling(uri)
     end
 
     def head(uri)
       @request_class_name = 'Head'
-      request(uri)
+      request_with_redirect_handling(uri)
     end
 
   private
 
-    def request(uri)
-      @uri = uri
-      request_with_redirect_handling(0)
-    end
-
-    def request_with_redirect_handling(redirect_count)
+    def request_with_redirect_handling(uri, redirect_count = 0)
       return log "Max redirects reached (#{@max_redirects})" if redirect_count >= @max_redirects
 
-      @uri = Micky::URI(@uri)
+      case response = request(uri)
+      when Net::HTTPSuccess
+        Response.new(response)
+      when Net::HTTPRedirection
+        uri = response['Location']
+        log "Redirect to #{uri}"
+        request_with_redirect_handling(uri, redirect_count + 1)
+      else
+        log response
+        log response.body
+        nil
+      end
+    end
+
+    def request(uri)
+      @uri = Micky::URI(uri) or return nil
 
       unless @skip_resolve == true
         # Resolv is the only domain validity check that can be wrapped with Timeout.
@@ -62,22 +72,12 @@ module Micky
 
       # Request
       request = Net::HTTP.const_get(@request_class_name).new(@uri)
+
+      # Headers
       @headers.each { |k,v| request[k] = v }
 
-      response = http.request(request)
-
-      case response
-      when Net::HTTPSuccess
-        Response.new(response)
-      when Net::HTTPRedirection
-        log "Redirect to #{response['Location']}"
-        @uri = response['Location']
-        request_with_redirect_handling(redirect_count + 1)
-      else
-        log response
-        nil
-      end
-    rescue Timeout::Error, ::URI::InvalidURIError, OpenSSL::SSL::SSLError, SystemCallError, SocketError => e
+      http.request(request)
+    rescue Timeout::Error, OpenSSL::SSL::SSLError, SystemCallError, SocketError => e
       log e
       nil
     end
