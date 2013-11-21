@@ -27,12 +27,12 @@ module Micky
     end
 
     def inspect
-      "#<Micky::Reponse #{super}>"
+      "#<Micky::Response #{super}>"
     end
 
     # Support for `awesome_print`
     def ai(*args)
-      "#<Micky::Reponse #{super}>"
+      "#<Micky::Response #{super}>"
     end
   end
 end
