@@ -161,9 +161,9 @@ end
 
 ## TODO
 
+- Support :basic_auth and :digest_auth through [HTTPauth](https://github.com/Manfred/HTTPauth)
 - Add tests
 - Better document configuration options in README
-- Add `raise_errors: true` option
 
 ## Contributing
 
