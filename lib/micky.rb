@@ -3,9 +3,11 @@ require 'micky/version'
 require 'micky/uri'
 require 'micky/request'
 require 'micky/response'
+require 'micky/errors'
 
 module Micky
   class << self
+    attr_accessor :raise_errors
     attr_accessor :max_redirects
     attr_accessor :timeout
     attr_accessor :skip_resolve
@@ -17,6 +19,7 @@ module Micky
   end
 
   # Reasonable defaults
+  @raise_errors = false
   @max_redirects = 10
   @timeout = 5
   @skip_resolve = false
