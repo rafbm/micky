@@ -1,13 +1,23 @@
 module Micky
   class Error < StandardError
-    attr_reader :response
+    attr_reader :exception, :response
 
-    def initialize(response = nil)
+    def initialize(message = nil, exception: nil, response: nil)
+      @exception = exception
       @response = response
+      @message = message
     end
 
-    def to_s
-      "#{response_code} #{response_message} at #{request_uri}"
+    def message
+      if response
+        "#{response_code} #{response_message} at #{request_uri}"
+      elsif exception
+        exception.inspect
+      elsif @message
+        @message
+      else
+        super
+      end
     end
 
     def request_uri
@@ -23,9 +33,19 @@ module Micky
     end
   end
 
+  # Client errors
   class ClientError < Error
   end
+  class HTTPClientError < ClientError
+  end
+  class InvalidURIError < ClientError
+  end
 
+  # Server errors
   class ServerError < Error
+  end
+  class HTTPServerError < ServerError
+  end
+  class TooManyRedirects < ServerError
   end
 end

@@ -24,7 +24,11 @@ module Micky
   private
 
     def request_with_redirect_handling(uri, redirect_count = 0)
-      return log "Max redirects reached (#{@max_redirects})" if redirect_count >= @max_redirects
+      if redirect_count >= @max_redirects
+        raise Micky::TooManyRedirects, "Max redirects reached (#{@max_redirects})" if @raise_errors
+        log "Max redirects reached (#{@max_redirects})"
+        return nil
+      end
 
       case response = request(uri)
       when Net::HTTPSuccess
@@ -34,40 +38,45 @@ module Micky
         log "Redirect to #{uri}"
         request_with_redirect_handling(uri, redirect_count + 1)
       else
-        log response
-        log response.body
-
         if @raise_errors
           case response
           when Net::HTTPClientError
-            raise Micky::ClientError.new(response)
+            raise Micky::HTTPClientError, response: response
           when Net::HTTPServerError
-            raise Micky::ServerError.new(response)
+            raise Micky::HTTPServerError, response: response
           end
         else
+          log response
+          log response.body
           nil
         end
       end
     end
 
     def request(uri)
-      @uri = Micky::URI(uri) or return nil
+      @uri = Micky::URI(uri) or begin
+        raise Micky::InvalidURIError, uri if @raise_errors
+        warn "Micky.#{@request_class_name.downcase}('#{uri}'): Invalid URI"
+        return nil
+      end
 
       unless @skip_resolve == true
-        # Resolv is the only domain validity check that can be wrapped with Timeout.
+        # Resolv is the only host validity check that can be wrapped with Timeout.
         # Net::HTTP and OpenURI use TCPSocket.open which isn’t timeoutable.
         require 'resolv' unless defined? Resolv
         begin
           Timeout.timeout(@resolve_timeout) do
             begin
               Resolv::DNS.new.getaddress(@uri.host)
-            rescue Resolv::ResolvError
-              log 'Domain resolution error'
+            rescue Resolv::ResolvError => e
+              raise Micky::ClientError, exception: e if @raise_errors
+              log 'Host resolution error'
               return nil
             end
           end
-        rescue Timeout::Error
-          log 'Domain resolution timeout'
+        rescue Timeout::Error => e
+          raise Micky::ClientError, "Host resolution timeout: #{@uri}" if @raise_errors
+          log 'Host resolution timeout'
           return nil
         end
       end
@@ -111,7 +120,12 @@ module Micky
       @headers.each { |k,v| request[k] = v }
 
       http.request(request)
-    rescue Timeout::Error, OpenSSL::SSL::SSLError, SystemCallError, SocketError => e
+    rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
+      raise Micky::ClientError, exception: e if @raise_errors
+      log e
+      nil
+    rescue SystemCallError, IOError, Timeout::Error => e
+      raise Micky::ServerError, exception: e if @raise_errors
       log e
       nil
     end
