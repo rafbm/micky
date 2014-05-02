@@ -175,4 +175,4 @@ end
 
 ---
 
-© 2013 [Rafaël Blais Masson](http://rafbm.com). Micky is released under the MIT license.
+© 2014 [Rafaël Blais Masson](http://rafbm.com). Micky is released under the MIT license.
