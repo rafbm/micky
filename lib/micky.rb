@@ -1,9 +1,9 @@
-require 'micky/version'
+require_relative 'micky/version'
 
-require 'micky/uri'
-require 'micky/request'
-require 'micky/response'
-require 'micky/errors'
+require_relative 'micky/uri'
+require_relative 'micky/request'
+require_relative 'micky/response'
+require_relative 'micky/errors'
 
 module Micky
   class << self
