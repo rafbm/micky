@@ -20,10 +20,10 @@ module Micky
 
   # Reasonable defaults
   @raise_errors = false
-  @max_redirects = 10
-  @timeout = 5
+  @max_redirects = 20
+  @timeout = 10
   @skip_resolve = false
-  @resolve_timeout = 2
+  @resolve_timeout = 5
   @oauth = {}
   @query = {}
   @headers = {}
