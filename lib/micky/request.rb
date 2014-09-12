@@ -47,7 +47,7 @@ module Micky
           end
         else
           log response
-          log response.body
+          log response.body if response
           nil
         end
       end
