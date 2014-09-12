@@ -40,6 +40,8 @@ module Micky
   end
   class InvalidURIError < ClientError
   end
+  class HostError < ClientError
+  end
 
   # Server errors
   class ServerError < Error

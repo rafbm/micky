@@ -69,13 +69,13 @@ module Micky
             begin
               Resolv::DNS.new.getaddress(@uri.host)
             rescue Resolv::ResolvError => e
-              raise Micky::ClientError, exception: e if @raise_errors
+              raise Micky::HostError, exception: e if @raise_errors
               log 'Host resolution error'
               return nil
             end
           end
         rescue Timeout::Error => e
-          raise Micky::ClientError, "Host resolution timeout: #{@uri}" if @raise_errors
+          raise Micky::HostError, "Host resolution timeout: #{@uri}" if @raise_errors
           log 'Host resolution timeout'
           return nil
         end
