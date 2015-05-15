@@ -34,7 +34,25 @@ module Micky
       when Net::HTTPSuccess
         Response.new(response)
       when Net::HTTPRedirection
+        previous_uri = uri
         uri = response['Location']
+
+        if uri !~ Micky::HTTP_URI_REGEX
+          if uri.start_with? '//'
+            # Protocol-relative
+            uri = Micky::URI(uri).to_s
+          elsif uri.start_with? '/'
+            # Host-relative
+            previous_uri = Micky::URI(previous_uri)
+            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}", uri)
+          else
+            # Path-relative
+            previous_uri = Micky::URI(previous_uri)
+            previous_directory = previous_uri.path.sub(/[^\/]+\z/, '')
+            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}#{previous_directory}", uri)
+          end
+        end
+
         log "Redirect to #{uri}"
         request_with_redirect_handling(uri, redirect_count + 1)
       else
