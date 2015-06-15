@@ -3,6 +3,13 @@ require 'delegate'
 module Micky
   # Delegates to a Net::HTTPResponse instance
   class Response < SimpleDelegator
+    attr_reader :uri
+
+    def initialize(response, uri)
+      super(response)
+      @uri = uri
+    end
+
     def data
       @data ||= begin
         if body and parser = Micky.parsers[content_type]

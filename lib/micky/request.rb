@@ -32,7 +32,7 @@ module Micky
 
       case response = request(uri)
       when Net::HTTPSuccess
-        Response.new(response)
+        Response.new(response, @uri)
       when Net::HTTPRedirection
         previous_uri = uri
         uri = response['Location']
