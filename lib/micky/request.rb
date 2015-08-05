@@ -87,7 +87,7 @@ module Micky
             begin
               Resolv::DNS.new.getaddress(@uri.host)
             rescue Resolv::ResolvError => e
-              raise Micky::HostError, exception: e if @raise_errors
+              raise Micky::HostError, original_exception: e if @raise_errors
               log 'Host resolution error'
               return nil
             end
@@ -139,11 +139,11 @@ module Micky
 
       http.request(request)
     rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
-      raise Micky::ClientError, exception: e if @raise_errors
+      raise Micky::ClientError, original_exception: e if @raise_errors
       log e
       nil
     rescue SystemCallError, IOError, Timeout::Error => e
-      raise Micky::ServerError, exception: e if @raise_errors
+      raise Micky::ServerError, original_exception: e if @raise_errors
       log e
       nil
     end

@@ -1,9 +1,9 @@
 module Micky
   class Error < StandardError
-    attr_reader :exception, :response
+    attr_reader :original_exception, :response
 
-    def initialize(message = nil, exception: nil, response: nil)
-      @exception = exception
+    def initialize(message = nil, original_exception: nil, response: nil)
+      @original_exception = original_exception
       @response = response
       @message = message
     end
@@ -11,8 +11,8 @@ module Micky
     def message
       if response
         "#{response_code} #{response_message} at #{request_uri}"
-      elsif exception
-        exception.inspect
+      elsif original_exception
+        original_exception.inspect
       elsif @message
         @message
       else
