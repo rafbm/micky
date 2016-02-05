@@ -142,7 +142,7 @@ module Micky
       raise Micky::ClientError, original_exception: e if @raise_errors
       log e
       nil
-    rescue SystemCallError, IOError, Timeout::Error => e
+    rescue SystemCallError, IOError, Timeout::Error, Zlib::DataError => e
       raise Micky::ServerError, original_exception: e if @raise_errors
       log e
       nil
