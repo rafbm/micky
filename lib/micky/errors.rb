@@ -30,4 +30,6 @@ module Micky
   end
   class TooManyRedirects < ServerError
   end
+  class NoRedirectLocation < ServerError
+  end
 end

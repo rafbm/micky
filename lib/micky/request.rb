@@ -37,6 +37,12 @@ module Micky
         previous_uri = uri
         uri = response['Location']
 
+        if uri.nil?
+          raise Micky::NoRedirectLocation, response: response if @raise_errors
+          warn "Micky.#{@request_class_name.downcase}('#{previous_uri}'): No “Location” for #{response.code} response"
+          return nil
+        end
+
         if uri !~ Micky::HTTP_URI_REGEX
           if uri.start_with? '//'
             # Protocol-relative
