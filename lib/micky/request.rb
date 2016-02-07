@@ -143,15 +143,17 @@ module Micky
       # Headers
       @headers.each { |k,v| request[k] = v }
 
-      http.request(request)
-    rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
-      raise Micky::ClientError, original_exception: e if @raise_errors
-      log e
-      nil
-    rescue SystemCallError, IOError, Timeout::Error, Zlib::DataError => e
-      raise Micky::ServerError, original_exception: e if @raise_errors
-      log e
-      nil
+      begin
+        http.request(request)
+      rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
+        raise Micky::ClientError, original_exception: e if @raise_errors
+        log e
+        nil
+      rescue SystemCallError, IOError, Timeout::Error, Zlib::DataError => e
+        raise Micky::ServerError, original_exception: e if @raise_errors
+        log e
+        nil
+      end
     end
 
     def log(message)
