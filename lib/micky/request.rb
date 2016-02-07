@@ -145,11 +145,14 @@ module Micky
 
       begin
         http.request(request)
+      rescue Zlib::DataError
+        request['Accept-Encoding'] = 'identity'
+        retry
       rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
         raise Micky::ClientError, original_exception: e if @raise_errors
         log e
         nil
-      rescue SystemCallError, IOError, Timeout::Error, Zlib::DataError => e
+      rescue SystemCallError, IOError, Timeout::Error => e
         raise Micky::ServerError, original_exception: e if @raise_errors
         log e
         nil
