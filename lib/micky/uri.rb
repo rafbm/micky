@@ -1,11 +1,18 @@
 require 'uri'
 
 module Micky
-  HTTP_URI_REGEX = %r{\Ahttps?://}
+  HTTP_URI_REGEX = %r{\Ahttps?://?}
+  SINGLE_SLASH_HTTP_URI_REGEX = %r{\Ahttps?:/[^/]}
 
   def self.URI(uri)
     uri = uri.to_s.strip
-    uri = "http://#{uri}" if uri !~ HTTP_URI_REGEX
+    if uri =~ HTTP_URI_REGEX
+      if uri =~ SINGLE_SLASH_HTTP_URI_REGEX
+        uri.sub! '/', '//'
+      end
+    else
+      uri = "http://#{uri}"
+    end
     begin
       ::URI.parse(uri)
     rescue ::URI::InvalidURIError
