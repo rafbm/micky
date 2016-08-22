@@ -1,15 +1,13 @@
 require 'uri'
 
 module Micky
-  HTTP_URI_REGEX = %r{\Ahttps?://?}
-  SINGLE_SLASH_HTTP_URI_REGEX = %r{\Ahttps?:/[^/]}
+  HTTP_URI_REGEX = %r{\Ahttps?:/+}
 
   def self.URI(uri)
     uri = uri.to_s.strip
     if uri =~ HTTP_URI_REGEX
-      if uri =~ SINGLE_SLASH_HTTP_URI_REGEX
-        uri.sub! '/', '//'
-      end
+      # Replace any number of slashes (1, 3 or 4579) by two slashes
+      uri.sub! %r{/+}, '//'.freeze
     else
       uri = "http://#{uri}"
     end
