@@ -144,7 +144,7 @@ module Micky
 
       begin
         http.request(request)
-      rescue Zlib::DataError
+      rescue Zlib::Error
         request['Accept-Encoding'] = 'identity'
         retry
       rescue Errno::ECONNREFUSED, OpenSSL::SSL::SSLError, SocketError => e
