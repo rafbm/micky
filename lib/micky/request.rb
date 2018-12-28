@@ -111,6 +111,7 @@ module Micky
       http.open_timeout = @timeout
       http.read_timeout = @timeout
       http.ssl_timeout  = @timeout
+      http.write_timeout = @timeout if http.respond_to?(:write_timeout=)
 
       # Query string
       query = Hash[::URI.decode_www_form(@uri.query || '')]
