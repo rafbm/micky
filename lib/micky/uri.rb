@@ -9,6 +9,7 @@ module Micky
       # Replace any number of slashes (1, 3 or 4579) by two slashes
       uri.sub! %r{/+}, '//'.freeze
     else
+      uri.sub! %r{/+}, ''.freeze
       uri = "http://#{uri}"
     end
     uri = begin
@@ -19,7 +20,7 @@ module Micky
       rescue ::URI::InvalidURIError
       end
     end
-    uri if uri.host
+    uri if uri&.host
   end
 
   module URI
