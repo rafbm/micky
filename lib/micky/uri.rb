@@ -11,7 +11,7 @@ module Micky
     else
       uri = "http://#{uri}"
     end
-    begin
+    uri = begin
       ::URI.parse(uri)
     rescue ::URI::InvalidURIError
       begin
@@ -19,6 +19,7 @@ module Micky
       rescue ::URI::InvalidURIError
       end
     end
+    uri if uri.host
   end
 
   module URI
