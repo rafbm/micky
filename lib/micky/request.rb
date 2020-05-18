@@ -5,7 +5,7 @@ module Micky
   class Request
     def initialize(opts = {})
       # Options can be set per request and fallback to module-level defaults
-      [:raise_errors, :max_redirects, :timeout, :skip_resolve, :resolve_timeout, :oauth, :query, :headers, :parsers].each do |name|
+      DEFAULTS.each_key do |name|
         value = opts.has_key?(name) ? opts[name] : Micky.public_send(name)
         instance_variable_set "@#{name}", value
       end

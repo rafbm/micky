@@ -6,33 +6,32 @@ require_relative 'micky/response'
 require_relative 'micky/errors'
 
 module Micky
+  DEFAULTS = {
+    raise_errors: false,
+    max_redirects: 20,
+    timeout: 10,
+    skip_resolve: false,
+    resolve_timeout: 5,
+    oauth: {},
+    query: {},
+    headers: {},
+    parsers: {
+      'application/json' => -> (body) {
+        require 'json' unless defined? JSON
+        JSON.parse(body) rescue nil
+      }
+    },
+  }
+
   class << self
-    attr_accessor :raise_errors
-    attr_accessor :max_redirects
-    attr_accessor :timeout
-    attr_accessor :skip_resolve
-    attr_accessor :resolve_timeout
-    attr_accessor :oauth
-    attr_accessor :query
-    attr_accessor :headers
-    attr_accessor :parsers
+    DEFAULTS.each_key do |key|
+      attr_accessor key
+    end
   end
 
-  # Reasonable defaults
-  @raise_errors = false
-  @max_redirects = 20
-  @timeout = 10
-  @skip_resolve = false
-  @resolve_timeout = 5
-  @oauth = {}
-  @query = {}
-  @headers = {}
-  @parsers = {
-    'application/json' => -> (body) {
-      require 'json' unless defined? JSON
-      JSON.parse(body) rescue nil
-    }
-  }
+  DEFAULTS.each do |key, value|
+    instance_variable_set :"@#{key}", value
+  end
 
   def self.get(uri, opts = {})
     Request.new(opts).get(uri)
