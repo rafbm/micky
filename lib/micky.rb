@@ -5,6 +5,8 @@ require_relative 'micky/request'
 require_relative 'micky/response'
 require_relative 'micky/errors'
 
+require 'logger'
+
 module Micky
   DEFAULTS = {
     raise_errors: false,
@@ -21,6 +23,7 @@ module Micky
         JSON.parse(body) rescue nil
       }
     },
+    logger: Logger.new(STDOUT),
   }
 
   class << self

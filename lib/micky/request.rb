@@ -32,6 +32,7 @@ module Micky
 
       case response = request(uri)
       when Net::HTTPSuccess
+        debug "#{response.code} success"
         Response.new(response, @uri)
       when Net::HTTPRedirection
         previous_uri = uri
@@ -39,7 +40,7 @@ module Micky
 
         if uri.nil?
           raise Micky::NoRedirectLocation, response: response if @raise_errors
-          warn "Micky.#{@request_class_name.downcase}('#{previous_uri}'): No “Location” for #{response.code} response"
+          log "No “Location” for #{response.code} response", previous_uri
           return nil
         end
 
@@ -59,7 +60,7 @@ module Micky
           end
         end
 
-        log "Redirect to #{uri}"
+        debug "#{response.code} redirect to #{uri}"
         request_with_redirect_handling(uri, redirect_count + 1)
       else
         if @raise_errors
@@ -70,7 +71,7 @@ module Micky
             raise Micky::HTTPServerError, response: response
           end
         else
-          log response if response
+          log "#{response.code} error" if response
           nil
         end
       end
@@ -79,7 +80,7 @@ module Micky
     def request(uri)
       @uri = Micky::URI(uri) or begin
         raise Micky::InvalidURIError, uri if @raise_errors
-        warn "Micky.#{@request_class_name.downcase}('#{uri}'): Invalid URI"
+        log 'Invalid URI', uri
         return nil
       end
 
@@ -159,9 +160,13 @@ module Micky
       end
     end
 
-    def log(message)
+    def log(message, uri = @uri, severity = Logger::WARN)
       message = "#{message.class}: #{message.message}" if message.is_a? Exception
-      warn "Micky.#{@request_class_name.downcase}('#{@uri}'): #{message}"
+      @logger.add(severity, "[Micky] #{@request_class_name.upcase} #{uri} - #{message}")
+    end
+
+    def debug(message, uri = @uri)
+      log(message, uri, Logger::DEBUG)
     end
   end
 end
