@@ -70,7 +70,7 @@ module Micky
             raise Micky::HTTPServerError, response: response
           end
         else
-          log response
+          log response if response
           nil
         end
       end
