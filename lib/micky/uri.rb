@@ -16,7 +16,7 @@ module Micky
       ::URI.parse(uri)
     rescue ::URI::InvalidURIError
       begin
-        ::URI.parse(::URI.encode(uri))
+        ::URI.parse(::URI::Parser.new.escape(uri))
       rescue ::URI::InvalidURIError
       end
     end
