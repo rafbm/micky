@@ -60,6 +60,12 @@ module Micky
           end
         end
 
+        if Micky::URI(uri).hostname == ''
+          raise Micky::NoRedirectLocation, response: response if @raise_errors
+          log "Empty hostname for #{response.code} response", previous_uri
+          return nil
+        end
+
         debug "#{response.code} redirect to #{uri}"
         request_with_redirect_handling(uri, redirect_count + 1)
       else
