@@ -32,4 +32,6 @@ module Micky
   end
   class NoRedirectLocation < ServerError
   end
+  class InvalidLocation < ServerError
+  end
 end

@@ -60,7 +60,12 @@ module Micky
           end
         end
 
-        if Micky::URI(uri).hostname == ''
+        parsed_uri = Micky::URI(uri)
+        if parsed_uri.nil?
+          raise Micky::InvalidLocation, response: response if @raise_errors
+          log "Invalid “Location” for #{response.code} response: #{uri}", previous_uri
+          return nil
+        elsif parsed_uri.hostname.empty?
           raise Micky::NoRedirectLocation, response: response if @raise_errors
           log "Empty hostname for #{response.code} response", previous_uri
           return nil
