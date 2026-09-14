@@ -22,6 +22,10 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
+  # Shipped with Ruby, but no longer default gems (logger since 4.0, base64 since 3.4)
+  spec.add_dependency 'logger'
+  spec.add_dependency 'base64'
+
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'minitest'
 end
