@@ -111,7 +111,10 @@ Micky.get(url, timeout: 5, total_timeout: 10)
 ```
 
 On expiry Micky returns `nil`, or raises `Micky::TotalTimeout` when
-`:raise_errors` is set. Both options default to `nil`, meaning no limit.
+`:raise_errors` is set. It defaults to 20 seconds; pass `nil` for no limit.
+
+`:max_response_size` has no default, since downloading a large file can be the
+point. For most callers it is the only option worth setting explicitly.
 
 ### OAuth `Authorization` header
 

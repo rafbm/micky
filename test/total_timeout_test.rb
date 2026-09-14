@@ -1,6 +1,10 @@
 require 'test_helper'
 
 describe 'Micky total_timeout' do
+  it 'defaults to 20 seconds' do
+    assert_equal 20, Micky.total_timeout
+  end
+
   it 'leaves a fast response alone' do
     assert_equal 1000, Micky.get(server.url('/ok'), total_timeout: 5).body.bytesize
   end
@@ -25,7 +29,7 @@ describe 'Micky total_timeout' do
 
     it 'never returns without the deadline, which is what makes it necessary' do
       assert_raises(Timeout::Error) do
-        Timeout.timeout(2) { Micky.get(server.url('/drip'), timeout: 5) }
+        Timeout.timeout(2) { Micky.get(server.url('/drip'), timeout: 5, total_timeout: nil) }
       end
     end
   end

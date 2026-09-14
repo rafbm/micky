@@ -12,7 +12,7 @@ module Micky
     raise_errors: false,
     max_redirects: 20,
     timeout: 10,
-    total_timeout: nil,
+    total_timeout: 20,
     max_response_size: nil,
     truncate: false,
     skip_resolve: false,
