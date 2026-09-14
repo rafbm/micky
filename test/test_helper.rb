@@ -18,9 +18,18 @@ class TestServer
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: #{body.bytesize}\r\n\r\n"
       socket.write body
     },
+    '/dir/ok' => ->(socket, port) { RESPONSES['/ok'].call(socket, port) },
     # A 200 whose chunked body is empty; Net::HTTP yields no chunk for it
     '/chunked-empty' => ->(socket, _port) {
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+    },
+    # Redirects with a host-relative Location
+    '/host-relative-redirect' => ->(socket, _port) {
+      socket.write "HTTP/1.1 302 Found\r\nLocation: /ok\r\nContent-Length: 0\r\n\r\n"
+    },
+    # Redirects with a path-relative Location, to /dir/ok
+    '/dir/path-relative-redirect' => ->(socket, _port) {
+      socket.write "HTTP/1.1 302 Found\r\nLocation: ok\r\nContent-Length: 0\r\n\r\n"
     },
     # Streams for as long as anyone reads
     '/flood' => ->(socket, _port) {

@@ -69,15 +69,19 @@ module Micky
           if uri.start_with? '//'
             # Protocol-relative
             uri = Micky::URI(uri).to_s
-          elsif uri.start_with? '/'
-            # Host-relative
-            previous_uri = Micky::URI(previous_uri)
-            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}", uri)
           else
-            # Path-relative
             previous_uri = Micky::URI(previous_uri)
-            previous_directory = previous_uri.path.sub(/[^\/]+\z/, '')
-            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}#{previous_directory}", uri)
+            origin = "#{previous_uri.scheme}://#{previous_uri.host}"
+            origin += ":#{previous_uri.port}" unless previous_uri.port == previous_uri.default_port
+
+            if uri.start_with? '/'
+              # Host-relative
+              uri = File.join(origin, uri)
+            else
+              # Path-relative
+              previous_directory = previous_uri.path.sub(/[^\/]+\z/, '')
+              uri = File.join("#{origin}#{previous_directory}", uri)
+            end
           end
         end
 
