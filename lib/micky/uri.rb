@@ -16,7 +16,9 @@ module Micky
       ::URI.parse(uri)
     rescue ::URI::InvalidURIError
       begin
-        ::URI.parse(::URI::Parser.new.escape(uri))
+        # ::URI::Parser is the RFC3986 parser, whose #escape is a deprecated shim
+        # that delegates to the RFC2396 one and warns under $VERBOSE
+        ::URI.parse(::URI::RFC2396_PARSER.escape(uri))
       rescue ::URI::InvalidURIError
       end
     end
@@ -25,7 +27,8 @@ module Micky
 
   module URI
     def self.extract(text)
-      ::URI.extract(text).select { |uri|
+      # Same as above: ::URI.extract is a deprecated shim over this
+      ::URI::RFC2396_PARSER.extract(text).select { |uri|
         begin
           ::URI.parse(uri).is_a? ::URI::HTTP
         rescue ::URI::InvalidURIError
