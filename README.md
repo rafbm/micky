@@ -76,6 +76,39 @@ Micky.get('http://drpm.me/unwz.jpg', headers: { 'Accept' => 'text/html' })
 Micky.get('http://urls.api.twitter.com/1/urls/count.json', query: { url: 'dropmeme.com' })
 ```
 
+### Limiting what an untrusted server can cost you
+
+By default Micky reads a response to its end, and `:timeout` bounds each socket
+operation rather than the call as a whole. Against a server you don’t control,
+neither is a limit: a body can be as large as the server cares to send, and a
+server that answers slowly but never stalls is never timed out at all.
+
+`:max_response_size` is the number of body bytes to keep. Micky stops reading at
+that point and drops the connection, so an oversized response costs you the
+limit and not the body. The response is handed back as usual, with the bytes
+Micky did read, and `truncated?` says whether there was more:
+
+```ruby
+response = Micky.get(url, max_response_size: 512 * 1024)
+response.body.bytesize # at most 524288
+response.truncated?    # true if the server had more to send
+```
+
+A prefix is useful for some formats and useless for others, which is why Micky
+truncates rather than deciding for you — keep it for HTML, reject it for an
+image.
+
+`:total_timeout` is a wall clock for the whole call, redirects included. It is
+the only option that bounds a server which drips one byte at a time, or a long
+chain of individually-reasonable redirects:
+
+```ruby
+Micky.get(url, timeout: 5, total_timeout: 10)
+```
+
+On expiry Micky returns `nil`, or raises `Micky::TotalTimeout` when
+`:raise_errors` is set. Both options default to `nil`, meaning no limit.
+
 ### OAuth `Authorization` header
 
 Micky supports creating a OAuth `Authorization` header with the help of the
@@ -162,7 +195,6 @@ end
 ## TODO
 
 - Support :basic_auth and :digest_auth through [HTTPauth](https://github.com/Manfred/HTTPauth)
-- Add tests
 - Better document configuration options in README
 
 ## Contributing

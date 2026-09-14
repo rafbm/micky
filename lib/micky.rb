@@ -12,6 +12,8 @@ module Micky
     raise_errors: false,
     max_redirects: 20,
     timeout: 10,
+    total_timeout: nil,
+    max_response_size: nil,
     skip_resolve: false,
     resolve_timeout: 5,
     oauth: {},
