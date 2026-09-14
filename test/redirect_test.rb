@@ -5,12 +5,12 @@ describe 'Micky redirects' do
   # goes to 127.0.0.1:80 and fails
   it 'keeps the port when the Location is host-relative' do
     response = Micky.get(server.url('/host-relative-redirect'))
-    assert_equal 500, response.body.bytesize
+    assert_equal 1000, response.body.bytesize
   end
 
   it 'keeps the port when the Location is path-relative' do
     response = Micky.get(server.url('/dir/path-relative-redirect'))
-    assert_equal 500, response.body.bytesize
+    assert_equal 1000, response.body.bytesize
   end
 
   it 'redirects to the resolved URL' do

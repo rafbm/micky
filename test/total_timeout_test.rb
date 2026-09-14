@@ -2,7 +2,7 @@ require 'test_helper'
 
 describe 'Micky total_timeout' do
   it 'leaves a fast response alone' do
-    assert_equal 500, Micky.get(server.url('/ok'), total_timeout: 5).body.bytesize
+    assert_equal 1000, Micky.get(server.url('/ok'), total_timeout: 5).body.bytesize
   end
 
   describe 'against a server that drips bytes slower than it is read' do

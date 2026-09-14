@@ -12,7 +12,7 @@ class TestServer
   RESPONSES = {
     # A small, ordinary response
     '/ok' => ->(socket) {
-      body = 'hello' * 100
+      body = 'hello' * 200
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: #{body.bytesize}\r\n\r\n"
       socket.write body
     },

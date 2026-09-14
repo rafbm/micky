@@ -3,19 +3,19 @@ require 'test_helper'
 describe 'Micky max_response_size' do
   it 'reads the whole body when the option is not set' do
     response = Micky.get(server.url('/ok'))
-    assert_equal 500, response.body.bytesize
+    assert_equal 1000, response.body.bytesize
     refute response.truncated?
   end
 
   it 'leaves a body under the limit alone' do
     response = Micky.get(server.url('/ok'), max_response_size: 100_000)
-    assert_equal 500, response.body.bytesize
+    assert_equal 1000, response.body.bytesize
     refute response.truncated?
   end
 
   it 'does not mark a body exactly at the limit as truncated' do
-    response = Micky.get(server.url('/ok'), max_response_size: 500)
-    assert_equal 500, response.body.bytesize
+    response = Micky.get(server.url('/ok'), max_response_size: 1000)
+    assert_equal 1000, response.body.bytesize
     refute response.truncated?
   end
 
@@ -47,7 +47,7 @@ describe 'Micky max_response_size' do
     # The 302 itself carries a gigabyte; only the hop after it is a real response
     time = elapsed {
       response = Micky.get(server.url('/fat-redirect'), max_response_size: 50_000)
-      assert_equal 500, response.body.bytesize
+      assert_equal 1000, response.body.bytesize
       refute response.truncated?
     }
     assert_operator time, :<, 2.0
