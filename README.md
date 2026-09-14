@@ -83,20 +83,24 @@ operation rather than the call as a whole. Against a server you don’t control,
 neither is a limit: a body can be as large as the server cares to send, and a
 server that answers slowly but never stalls is never timed out at all.
 
-`:max_response_size` is the number of body bytes to keep. Micky stops reading at
-that point and drops the connection, so an oversized response costs you the
-limit and not the body. The response is handed back as usual, with the bytes
-Micky did read, and `truncated?` says whether there was more:
+`:max_response_size` is the number of body bytes Micky will read. Past that it
+stops reading and drops the connection, so an oversized response costs you the
+limit and not the body. The call returns `nil`, or raises
+`Micky::TooLargeResponse` when `:raise_errors` is set:
 
 ```ruby
-response = Micky.get(url, max_response_size: 512 * 1024)
+Micky.get(url, max_response_size: 512 * 1024) # nil if the body is larger
+```
+
+Pass `:truncate` to get the first `:max_response_size` bytes instead. A prefix
+is useful for some formats and useless for others, so this is opt-in: fine for
+HTML, not for an image.
+
+```ruby
+response = Micky.get(url, max_response_size: 512 * 1024, truncate: true)
 response.body.bytesize # at most 524288
 response.truncated?    # true if the server had more to send
 ```
-
-A prefix is useful for some formats and useless for others, which is why Micky
-truncates rather than deciding for you — keep it for HTML, reject it for an
-image.
 
 `:total_timeout` is a wall clock for the whole call, redirects included. It is
 the only option that bounds a server which drips one byte at a time, or a long

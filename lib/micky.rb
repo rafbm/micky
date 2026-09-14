@@ -14,6 +14,7 @@ module Micky
     timeout: 10,
     total_timeout: nil,
     max_response_size: nil,
+    truncate: false,
     skip_resolve: false,
     resolve_timeout: 5,
     oauth: {},

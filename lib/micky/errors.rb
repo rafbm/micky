@@ -32,6 +32,8 @@ module Micky
   end
   class TotalTimeout < ServerError
   end
+  class TooLargeResponse < ServerError
+  end
   class NoRedirectLocation < ServerError
   end
   class InvalidLocation < ServerError

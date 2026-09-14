@@ -52,6 +52,12 @@ module Micky
 
       case response = request(uri)
       when Net::HTTPSuccess
+        if @truncated && !@truncate
+          raise Micky::TooLargeResponse, "Response larger than #{@max_response_size} bytes" if @raise_errors
+          log "Response larger than #{@max_response_size} bytes"
+          return nil
+        end
+
         debug "#{response.code} success"
         log "Response truncated at #{@max_response_size} bytes" if @truncated
         Response.new(response, @uri, truncated: @truncated)
