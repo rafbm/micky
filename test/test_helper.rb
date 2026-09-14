@@ -9,45 +9,43 @@ require 'logger'
 class TestServer
   attr_reader :port
 
-  # Each handler takes the socket and its port. Micky drops the port when
-  # resolving a host-relative Location, so redirects must name an absolute URL.
   RESPONSES = {
     # A small, ordinary response
-    '/ok' => ->(socket, _port) {
+    '/ok' => ->(socket) {
       body = 'hello' * 100
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: #{body.bytesize}\r\n\r\n"
       socket.write body
     },
-    '/dir/ok' => ->(socket, port) { RESPONSES['/ok'].call(socket, port) },
+    '/dir/ok' => ->(socket) { RESPONSES['/ok'].call(socket) },
     # A 200 whose chunked body is empty; Net::HTTP yields no chunk for it
-    '/chunked-empty' => ->(socket, _port) {
+    '/chunked-empty' => ->(socket) {
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
     },
     # Redirects with a host-relative Location
-    '/host-relative-redirect' => ->(socket, _port) {
+    '/host-relative-redirect' => ->(socket) {
       socket.write "HTTP/1.1 302 Found\r\nLocation: /ok\r\nContent-Length: 0\r\n\r\n"
     },
     # Redirects with a path-relative Location, to /dir/ok
-    '/dir/path-relative-redirect' => ->(socket, _port) {
+    '/dir/path-relative-redirect' => ->(socket) {
       socket.write "HTTP/1.1 302 Found\r\nLocation: ok\r\nContent-Length: 0\r\n\r\n"
     },
     # Streams for as long as anyone reads
-    '/flood' => ->(socket, _port) {
+    '/flood' => ->(socket) {
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 1000000000\r\n\r\n"
       loop { socket.write('x' * 8192) }
     },
     # One byte at a time, never idle long enough to trip a per-read timeout
-    '/drip' => ->(socket, _port) {
+    '/drip' => ->(socket) {
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 100000\r\n\r\n"
       loop { socket.write('x'); socket.flush; sleep 0.2 }
     },
     # A redirect that itself carries a huge body
-    '/fat-redirect' => ->(socket, port) {
-      socket.write "HTTP/1.1 302 Found\r\nLocation: http://127.0.0.1:#{port}/ok\r\nContent-Length: 1000000000\r\n\r\n"
+    '/fat-redirect' => ->(socket) {
+      socket.write "HTTP/1.1 302 Found\r\nLocation: /ok\r\nContent-Length: 1000000000\r\n\r\n"
       loop { socket.write('x' * 8192) }
     },
     # gzip, so Net::HTTP’s transparent decoding is in the path
-    '/gzipped-flood' => ->(socket, _port) {
+    '/gzipped-flood' => ->(socket) {
       require 'zlib'
       socket.write "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n"
       writer = Zlib::GzipWriter.new(socket)
@@ -78,7 +76,7 @@ private
         begin
           path = s.gets.to_s.split(' ')[1]
           while (line = s.gets) && line != "\r\n"; end
-          RESPONSES.fetch(path, ->(so, _) { so.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n") }).call(s, @port)
+          RESPONSES.fetch(path, ->(so) { so.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n") }).call(s)
         rescue StandardError, Timeout::Error
           # The client hung up, as most of these specs expect
         ensure
