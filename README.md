@@ -92,9 +92,9 @@ limit and not the body. The call returns `nil`, or raises
 Micky.get(url, max_response_size: 512 * 1024) # nil if the body is larger
 ```
 
-Pass `:truncate` to get the first `:max_response_size` bytes instead. A prefix
-is useful for some formats and useless for others, so this is opt-in: fine for
-HTML, not for an image.
+Pass `:truncate` to get the first `:max_response_size` bytes instead. A
+truncated response is useful for some formats and useless for others, so this
+is opt-in: fine for HTML, not for an image.
 
 ```ruby
 response = Micky.get(url, max_response_size: 512 * 1024, truncate: true)
