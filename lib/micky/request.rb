@@ -9,19 +9,39 @@ module Micky
         value = opts.has_key?(name) ? opts[name] : Micky.public_send(name)
         instance_variable_set "@#{name}", value
       end
+
+      @truncated = false
     end
 
     def get(uri)
       @request_class_name = 'Get'
-      request_with_redirect_handling(uri)
+      with_total_timeout { request_with_redirect_handling(uri) }
     end
 
     def head(uri)
       @request_class_name = 'Head'
-      request_with_redirect_handling(uri)
+      with_total_timeout { request_with_redirect_handling(uri) }
     end
 
   private
+
+    # `timeout` bounds each socket operation, not the whole call. A slow drip or a
+    # long redirect chain never trips it. `total_timeout` is a wall clock for the
+    # whole call, redirects included.
+    # We pass our own exception class: Timeout only converts the instance it raised
+    # itself, so an enclosing block’s expiry passes through untouched and ours is
+    # never caught by a `rescue Timeout::Error` in between.
+    def with_total_timeout
+      return yield unless @total_timeout
+
+      begin
+        Timeout.timeout(@total_timeout, Micky::TotalTimeout) { yield }
+      rescue Micky::TotalTimeout => e
+        raise e if @raise_errors
+        log "Total timeout reached (#{@total_timeout}s)"
+        nil
+      end
+    end
 
     def request_with_redirect_handling(uri, redirect_count = 0)
       if redirect_count >= @max_redirects
@@ -32,8 +52,15 @@ module Micky
 
       case response = request(uri)
       when Net::HTTPSuccess
+        if @truncated && !@truncate
+          raise Micky::TooLargeResponse, "Response larger than #{@max_response_size} bytes" if @raise_errors
+          log "Response larger than #{@max_response_size} bytes"
+          return nil
+        end
+
         debug "#{response.code} success"
-        Response.new(response, @uri)
+        log "Response truncated at #{@max_response_size} bytes" if @truncated
+        Response.new(response, @uri, truncated: @truncated)
       when Net::HTTPRedirection
         previous_uri = uri
         uri = response['Location']
@@ -48,15 +75,19 @@ module Micky
           if uri.start_with? '//'
             # Protocol-relative
             uri = Micky::URI(uri).to_s
-          elsif uri.start_with? '/'
-            # Host-relative
-            previous_uri = Micky::URI(previous_uri)
-            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}", uri)
           else
-            # Path-relative
             previous_uri = Micky::URI(previous_uri)
-            previous_directory = previous_uri.path.sub(/[^\/]+\z/, '')
-            uri = File.join("#{previous_uri.scheme}://#{previous_uri.host}#{previous_directory}", uri)
+            origin = "#{previous_uri.scheme}://#{previous_uri.host}"
+            origin += ":#{previous_uri.port}" unless previous_uri.port == previous_uri.default_port
+
+            if uri.start_with? '/'
+              # Host-relative
+              uri = File.join(origin, uri)
+            else
+              # Path-relative
+              previous_directory = previous_uri.path.sub(/[^\/]+\z/, '')
+              uri = File.join("#{origin}#{previous_directory}", uri)
+            end
           end
         end
 
@@ -156,7 +187,11 @@ module Micky
       @headers.each { |k,v| request[k] = v }
 
       begin
-        http.request(request)
+        if @max_response_size
+          http.request(request) { |response| read_capped_body(response) }
+        else
+          http.request(request)
+        end
       rescue Zlib::Error
         request['Accept-Encoding'] = 'identity'
         retry
@@ -169,6 +204,36 @@ module Micky
         log e
         nil
       end
+    end
+
+    # Without a block, Net::HTTP reads the whole body into memory before we see any
+    # of it. Reading it ourselves lets us stop at `max_response_size` and drop the
+    # connection. Runs on redirect hops too, since a redirect can carry a body.
+    def read_capped_body(response)
+      # Net::HTTP yields nothing for a body-less response (204, HEAD) and for an
+      # empty one alike, so decide up front whether the body is nil or empty
+      body = +''.b if response.class.body_permitted? && @request_class_name == 'Get'
+      @truncated = false
+
+      response.read_body do |chunk|
+        room = @max_response_size - body.bytesize
+
+        if chunk.bytesize > room
+          body << chunk.byteslice(0, room)
+          @truncated = true
+          break
+        end
+
+        body << chunk
+      end
+
+      # `read_body` only sets `@read` at the end of the body, and `break` skips that.
+      # Without it, `response.body` would resume reading where we stopped.
+      response.instance_variable_set(:@read, true)
+      response.body = body
+
+      # The server’s Content-Length no longer matches the body
+      response['content-length'] = body.bytesize.to_s if @truncated
     end
 
     def log(message, uri = @uri, severity = Logger::WARN)

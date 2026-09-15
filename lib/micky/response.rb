@@ -5,9 +5,15 @@ module Micky
   class Response < SimpleDelegator
     attr_reader :uri
 
-    def initialize(response, uri)
+    def initialize(response, uri, truncated: false)
       super(response)
       @uri = uri
+      @truncated = truncated
+    end
+
+    # True when the body was cut at `max_response_size`
+    def truncated?
+      @truncated
     end
 
     def data
